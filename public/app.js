@@ -5,6 +5,7 @@ const scanBtn = document.getElementById("scanBtn");
 const clearClosedBtn = document.getElementById("clearClosedBtn");
 const scanStatus = document.getElementById("scanStatus");
 const itemsBody = document.getElementById("itemsBody");
+const shippingLabel = document.getElementById("shippingLabel");
 
 let items = [];
 
@@ -67,16 +68,19 @@ function render() {
     const confBadge = it.confidence
       ? `<span class="badge confidence-${it.confidence}">${it.confidence}</span>`
       : "—";
-    const statusBadge = it.status === "closed"
-      ? `<span class="badge closed">Auction Closed</span>` : "";
+    const statusBadge =
+      it.status === "closed" ? `<span class="badge closed">Auction Closed</span>` : "";
 
-    const sourcesHtml = (it.sources && it.sources.length)
-      ? `<div class="reasoning">Sources: ${it.sources
-          .map((s) => s.startsWith("http")
-            ? `<a href="${s}" target="_blank" rel="noopener">${new URL(s).hostname}</a>`
-            : s)
-          .join(", ")}</div>`
-      : "";
+    const sourcesHtml =
+      it.sources && it.sources.length
+        ? `<div class="reasoning">Sources: ${it.sources
+            .map((s) =>
+              s.startsWith("http")
+                ? `<a href="${s}" target="_blank" rel="noopener">${new URL(s).hostname}</a>`
+                : escapeHtml(s)
+            )
+            .join(", ")}</div>`
+        : "";
 
     tr.innerHTML = `
       <td class="title-cell">
@@ -113,6 +117,18 @@ function escapeHtml(s) {
     .replaceAll("'", "&#39;");
 }
 
+async function loadConfig() {
+  try {
+    const r = await fetch("/api/config");
+    const cfg = await r.json();
+    if (cfg.shippingCost != null) {
+      shippingLabel.textContent = "$" + Number(cfg.shippingCost).toFixed(2);
+    }
+  } catch {
+    /* keep default */
+  }
+}
+
 async function refresh() {
   try {
     const r = await fetch("/api/items");
@@ -137,8 +153,9 @@ async function runScan() {
     });
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || "scan failed");
+    const errStr = data.errors ? ` · ${data.errors} errored` : "";
     setStatus(
-      `Fetched ${data.fetched} listings · analyzed ${data.analyzed} new · skipped ${data.skipped} already seen`
+      `Fetched ${data.fetched} listings · analyzed ${data.analyzed} new · skipped ${data.skipped} already seen${errStr}`
     );
     items = data.items || [];
     render();
@@ -191,5 +208,6 @@ itemsBody.addEventListener("click", (e) => {
 });
 
 // Initial load + poll every 60s to auto-close expired auctions.
+loadConfig();
 refresh();
 setInterval(refresh, 60000);

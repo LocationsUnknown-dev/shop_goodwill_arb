@@ -1,8 +1,9 @@
 # Goodwill Gaming Deals Scanner
 
-Lightweight local app that scans Shop Goodwill's Gaming Systems category for
-auctions ending soon and uses Claude to estimate what a game store would pay
-for each lot. Surfaces items where `estimated_resale > current_bid + shipping`.
+Lightweight local Node.js app that scans Shop Goodwill's Gaming Systems
+category for auctions ending soon and uses Claude to estimate what a game
+store would pay for each lot. Surfaces items where
+`estimated_resale > current_bid + shipping`.
 
 ## Features
 
@@ -14,29 +15,33 @@ for each lot. Surfaces items where `estimated_resale > current_bid + shipping`.
 - **Only-new scans** — subsequent scans skip items already in the DB
 - **Per-row rescan** in either mode
 - **Auto-closed auctions** with one-click cleanup
-- **SQLite persistence** across restarts
+- **SQLite persistence** across restarts (via better-sqlite3)
 
 ## Setup
 
+Requires Node.js 18 or newer.
+
 ```bash
-pip install -r requirements.txt
+npm install
 cp .env.example .env
 # edit .env: paste your ANTHROPIC_API_KEY
-python app.py
+npm start
 ```
 
 Then open <http://localhost:5000>.
 
+Use `npm run dev` for auto-restart on file changes.
+
 ### Finding the right category ID
 
-`SHOPGOODWILL_CAT_IDS` in `.env` defaults to `26`. If scans return zero or
+`SHOPGOODWILL_CAT_IDS` in `.env` defaults to `26`. If scans return zero or the
 wrong items:
 
 1. Open <https://shopgoodwill.com/categories/gaming-systems> in Chrome
 2. Open DevTools → Network, filter by `ItemListing`
-3. Refresh the page, click the request, copy the `catIds` value from the
+3. Refresh the page, click the request, and copy the `catIds` value from the
    request body into `.env`
-4. Restart `python app.py`
+4. Restart `npm start`
 
 ## Cost reference
 
@@ -54,8 +59,8 @@ means repeated full scans during the same day do almost no additional work.
 
 ## Files
 
-- `app.py` — Flask routes + app entrypoint
-- `goodwill.py` — Shop Goodwill API client
-- `analyzer.py` — Claude estimator (cheap + accurate modes)
-- `db.py` — SQLite schema + queries
-- `templates/index.html`, `static/app.js`, `static/style.css` — UI
+- `server.js` — Express app + routes
+- `goodwill.js` — Shop Goodwill API client (`fetch`-based)
+- `analyzer.js` — Claude estimator (cheap + accurate modes)
+- `db.js` — better-sqlite3 schema + queries
+- `public/index.html`, `public/app.js`, `public/style.css` — UI
