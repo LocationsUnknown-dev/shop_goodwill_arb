@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Goodwill Gaming Deals Scanner</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Goodwill Gaming Deals Scanner</h1>
+  <p class="subtitle">
+    Scans Shop Goodwill's Gaming Systems category for auctions ending soon and
+    uses Claude to estimate game-store trade-in value.
+    Shipping &amp; handling assumed: <strong>${{ "%.2f"|format(shipping_cost) }}</strong>.
+  </p>
+</header>
+
+<section id="controls">
+  <div class="control-row">
+    <label>
+      Ending within <output id="hoursLabel">24</output> hours
+      <input type="range" id="hoursSlider" min="1" max="24" value="24" step="1">
+    </label>
+
+    <fieldset id="modeGroup">
+      <legend>AI mode</legend>
+      <label>
+        <input type="radio" name="mode" value="cheap" checked>
+        <strong>Cheap</strong> — Haiku 4.5, knowledge only (~$0.002/item)
+      </label>
+      <label>
+        <input type="radio" name="mode" value="accurate">
+        <strong>Accurate</strong> — Sonnet 4.6 + web search (~$0.03-0.05/item)
+      </label>
+    </fieldset>
+
+    <label>
+      Min profit %
+      <input type="number" id="minProfit" value="0" step="1" min="-100">
+    </label>
+  </div>
+
+  <div class="control-row">
+    <button id="scanBtn" class="primary">Scan for new items</button>
+    <button id="clearClosedBtn">Remove auction-closed items</button>
+    <span id="scanStatus" class="status"></span>
+  </div>
+</section>
+
+<section id="itemsWrap">
+  <table id="itemsTable">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Total cost<br><small>(bid + S&amp;H)</small></th>
+        <th>Est. resale</th>
+        <th>Profit</th>
+        <th>Max bid</th>
+        <th>Ends in</th>
+        <th>Confidence</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="itemsBody">
+      <tr><td colspan="8" class="empty">No items yet. Click "Scan for new items" above.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<script src="/static/app.js"></script>
+</body>
+</html>
